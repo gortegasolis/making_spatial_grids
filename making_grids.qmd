@@ -60,6 +60,37 @@ triangles <- triangle_grid(country, 200000)
 plet(vect(triangles))
 ```
 
+#### Random irregular triangles
+```{r}
+irreg_triangle_grid <- function(polygon, n) {
+  if (isTRUE(inherits(polygon, "sf"))){polygon <- vect(polygon)}
+  box <- ext(polygon) |> vect(crs = crs(polygon))
+  points <- spatSample(x = box, n)
+  points2 <- crds(box, df = T) |> vect(geom = c("x","y"), crs = crs(polygon))
+  points <- rbind(points, points2)
+  polygons <- delaunay(points) |> st_as_sf()
+}
+
+irreg_triangles <- irreg_triangle_grid(country, 200)
+
+plet(vect(irreg_triangles))
+```
+
+
+#### Random irregular polygons
+```{r}
+irreg_pol_grid <- function(polygon, n) {
+  if (isTRUE(inherits(polygon, "sf"))){polygon <- vect(polygon)}
+  box <- ext(polygon) |> vect(crs = crs(polygon))
+  points <- spatSample(x = box, n)
+  polygons <- voronoi(points)
+  polygons <- crop(polygons, box) |> st_as_sf()
+}
+
+irreg_polygons <- irreg_pol_grid(country, 200)
+
+plet(vect(irreg_polygons))
+```
 #### Session info
 ```{r}
 sessionInfo()
