@@ -1,0 +1,52 @@
+## Creating grids in R
+
+We demonstrate simple ways to create grids using functions from the packages sf and terra.
+
+```{r}
+library("sf")
+library("terra")
+library("dplyr")
+library("tidyterra")
+library("geodata")
+```
+
+### Project settings
+
+```{r}
+crs <- "+proj=laea +lon_0=-49.21875 +lat_0=0 +datum=WGS84 +units=m +no_defs"
+geodata_path("data")
+country <- gadm("BR", level = 0)
+country <- st_as_sf(country)
+country <- st_transform(country, crs = crs)
+```
+
+#### Square grids using sf
+
+```{r}
+squares <- st_make_grid(country, cellsize = 200000) |> st_as_sf() |> rename(geometry = x)
+plet(vect(squares))
+```
+
+#### Hexagons using sf
+
+```{r}
+hexagons <- st_make_grid(country, cellsize = 200000, square = F) |> st_as_sf() |> rename(geometry = x)
+plet(vect(hexagons))
+```
+
+#### Triangles combining sf and terra
+
+```{r}
+triangle_grid <- function(polygon, cellsize){
+  hexagons <- st_make_grid(polygon, cellsize = cellsize, square = F) |>
+    st_as_sf() 
+  hcentroids <-vect(hexagons) |> centroids()
+  polygons <- delaunay(hcentroids) |> st_as_sf()
+  index <- st_perimeter(polygons) |> as.numeric()
+  polygons <- filter(polygons, index < max(index)*0.9)
+}
+
+triangles <- triangle_grid(country, 200000)
+
+plet(vect(triangles))
+```
