@@ -1,3 +1,10 @@
+---
+title: "Making spatial grids"
+format:
+   html: 
+    output-file: "index"
+---
+
 ## Creating grids in R
 
 We demonstrate simple ways to create grids using functions from the packages sf and terra.
