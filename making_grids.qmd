@@ -6,7 +6,11 @@ format:
     output-file: "index"
 ---
 
-Simple ways to create grids using functions from the packages sf and terra.
+*Simple ways to create grids using functions from the packages sf and terra.*
+
+### Project preparation
+
+#### Libraries
 
 ```{r}
 if (isFALSE(require(pacman))) {
@@ -15,15 +19,24 @@ if (isFALSE(require(pacman))) {
 pacman::p_load(sf, terra, dplyr, tidyterra, geodata)
 ```
 
-#### Project settings
+#### Settings
 
 ```{r}
 crs <- "+proj=laea +lon_0=-49.21875 +lat_0=0 +datum=WGS84 +units=m +no_defs"
 geodata_path("data")
+```
+
+#### Download data
+
+```{r}
 country <- gadm("BR", level = 0)
 country <- st_as_sf(country)
 country <- st_transform(country, crs = crs)
 ```
+
+### Regular tessellation
+
+There are three geometric shapes that can produce the regular tessellation of a surface: squares, hexagons, and triangles.
 
 #### Square grids using sf
 
@@ -60,13 +73,18 @@ triangles <- triangle_grid(country, 200000)
 plet(vect(triangles))
 ```
 
+### Irregular tessellation
+
 #### Random irregular triangles
+
 ```{r}
 irreg_triangle_grid <- function(polygon, n) {
-  if (isTRUE(inherits(polygon, "sf"))){polygon <- vect(polygon)}
+  if (isTRUE(inherits(polygon, "sf"))) {
+    polygon <- vect(polygon)
+  }
   box <- ext(polygon) |> vect(crs = crs(polygon))
   points <- spatSample(x = box, n)
-  points2 <- crds(box, df = T) |> vect(geom = c("x","y"), crs = crs(polygon))
+  points2 <- crds(box, df = T) |> vect(geom = c("x", "y"), crs = crs(polygon))
   points <- rbind(points, points2)
   polygons <- delaunay(points) |> st_as_sf()
 }
@@ -76,11 +94,13 @@ irreg_triangles <- irreg_triangle_grid(country, 200)
 plet(vect(irreg_triangles))
 ```
 
-
 #### Random irregular polygons
+
 ```{r}
 irreg_pol_grid <- function(polygon, n) {
-  if (isTRUE(inherits(polygon, "sf"))){polygon <- vect(polygon)}
+  if (isTRUE(inherits(polygon, "sf"))) {
+    polygon <- vect(polygon)
+  }
   box <- ext(polygon) |> vect(crs = crs(polygon))
   points <- spatSample(x = box, n)
   polygons <- voronoi(points)
@@ -91,7 +111,9 @@ irreg_polygons <- irreg_pol_grid(country, 200)
 
 plet(vect(irreg_polygons))
 ```
+
 #### Session info
+
 ```{r}
 sessionInfo()
 ```
